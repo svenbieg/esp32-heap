@@ -96,38 +96,41 @@ return p;
 // Allocate free block from map
 void* multi_heap_malloc_fit(multi_heap_handle_t heap, size_t block_size)
 {
-size_t over_size=block_size+mem_block_calc_size(1);
 mem_block_map_it_t it;
 mem_block_map_it_init(&it, &heap->map_free);
-mem_block_map_it_find(&it, block_size);
+if(mem_block_map_it_find(&it, block_size))
+	{
+	size_t free_pos=mem_block_map_item_get_offset(it.current);
+	mem_block_map_remove_offset(heap, &heap->map_free, block_size, free_pos);
+	void* p=mem_block_init(heap, free_pos, block_size, 0);
+	heap->free_bytes-=block_size;
+	if(heap->free_bytes<heap->minimum_free_bytes)
+		heap->minimum_free_bytes=heap->free_bytes;
+	heap->allocated_blocks++;
+	heap->free_blocks--;
+	return p;
+	}
+size_t over_size=block_size+mem_block_calc_size(1);
+mem_block_map_it_find(&it, over_size);
 if(!it.current)
 	return NULL;
-if(it.current->size<block_size)
+if(it.current->size<over_size)
 	mem_block_map_it_move_next(&it);
 if(!it.current)
 	return NULL;
 size_t free_pos=mem_block_map_item_get_offset(it.current);
 size_t free_size=it.current->size;
 mem_block_map_remove_offset(heap, &heap->map_free, free_size, free_pos);
-if(free_size>block_size)
-	{
-	size_t rest_pos=free_pos+block_size;
-	size_t rest_size=free_size-block_size;
-	mem_block_init(heap, rest_pos, rest_size, MEM_BLOCK_FLAG_FREE);
-	if(free_size>=over_size)
-		multi_heap_free_private(heap, rest_pos);
-	free_size=block_size;
-	heap->total_blocks++;
-	}
-else
-	{
-	heap->free_blocks--;
-	}
-void* p=mem_block_init(heap, free_pos, free_size, 0);
-heap->free_bytes-=free_size;
+void* p=mem_block_init(heap, free_pos, block_size, 0);
+size_t rest_pos=free_pos+block_size;
+size_t rest_size=free_size-block_size;
+mem_block_init(heap, rest_pos, rest_size, MEM_BLOCK_FLAG_FREE);
+multi_heap_free_private(heap, rest_pos);
+heap->free_bytes-=block_size;
 if(heap->free_bytes<heap->minimum_free_bytes)
 	heap->minimum_free_bytes=heap->free_bytes;
 heap->allocated_blocks++;
+heap->total_blocks++;
 return p;
 }
 
