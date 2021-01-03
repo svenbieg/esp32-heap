@@ -134,7 +134,6 @@ return p;
 // Allocate free block from buffer
 void* multi_heap_malloc_private(multi_heap_handle_t heap, size_t block_size)
 {
-size_t over_size=block_size+mem_block_calc_size(1);
 uint32_t count=heap->free_offset_count;
 size_t* offsets=heap->free_offsets;
 for(uint32_t pos=count; pos>0; pos--)
