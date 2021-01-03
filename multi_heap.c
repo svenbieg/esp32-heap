@@ -53,9 +53,9 @@ mem_block_map_remove_offset(heap, &heap->map_free, info->size, info->pos);
 void multi_heap_free_private(multi_heap_handle_t heap, size_t offset)
 {
 uint32_t count=heap->free_offset_count;
-if(count==CONFIG_MULTI_HEAP_MAX_OFFSETS)
+if(count==CONFIG_HEAP_MAX_OFFSETS)
 	{
-	MULTI_HEAP_PRINTF("CONFIG_MULTI_HEAP_MAX_OFFSETS\n");
+	MULTI_HEAP_PRINTF("CONFIG_HEAP_MAX_OFFSETS\n");
 	heap->flags|=MULTI_HEAP_FLAG_DIRTY;
 	return;
 	}
@@ -81,7 +81,7 @@ void* multi_heap_malloc_direct(multi_heap_handle_t heap, size_t block_size)
 {
 if(heap->total_size-heap->size<block_size)
 	return NULL;
-size_t heap_start=(size_t)heap+sizeof(heap_t);
+size_t heap_start=(size_t)heap+sizeof(multi_heap_t);
 size_t heap_end=heap_start+heap->size;
 void* p=mem_block_init(heap, heap_end, block_size, 0);
 heap->size+=block_size;
@@ -109,13 +109,14 @@ if(!it.current)
 size_t free_pos=mem_block_map_item_get_offset(it.current);
 size_t free_size=it.current->size;
 mem_block_map_remove_offset(heap, &heap->map_free, free_size, free_pos);
-if(free_size>=over_size)
+if(free_size>block_size)
 	{
 	size_t rest_pos=free_pos+block_size;
 	size_t rest_size=free_size-block_size;
-	free_size=block_size;
 	mem_block_init(heap, rest_pos, rest_size, MEM_BLOCK_FLAG_FREE);
-	multi_heap_free_private(heap, rest_pos);
+	if(free_size>=over_size)
+		multi_heap_free_private(heap, rest_pos);
+	free_size=block_size;
 	heap->total_blocks++;
 	}
 else
@@ -141,27 +142,15 @@ for(uint32_t pos=count; pos>0; pos--)
 	mem_block_info_t info;
 	if(!mem_block_get_info(heap, offsets[pos-1], &info))
 		continue;
-	if(info.size<block_size)
+	if(info.size!=block_size)
 		continue;
-	if(info.size<over_size)
-		{
-		multi_heap_remove_offset(heap, &info);
-		heap->free_blocks--;
-		}
-	else
-		{
-		size_t rest_pos=info.pos+block_size;
-		size_t rest_size=info.size-block_size;
-		info.size=block_size;
-		mem_block_init(heap, rest_pos, rest_size, MEM_BLOCK_FLAG_FREE);
-		offsets[pos-1]=rest_pos;
-		heap->total_blocks++;
-		}
+	multi_heap_remove_offset(heap, &info);
 	void* p=mem_block_init(heap, info.pos, info.size, 0);
 	heap->free_bytes-=info.size;
 	if(heap->free_bytes<heap->minimum_free_bytes)
 		heap->minimum_free_bytes=heap->free_bytes;
 	heap->allocated_blocks++;
+	heap->free_blocks--;
 	return p;
 	}
 return NULL;
@@ -171,12 +160,12 @@ return NULL;
 void multi_heap_update_map(multi_heap_handle_t heap)
 {
 // Copy free offsets from buffer
-size_t offsets[CONFIG_MULTI_HEAP_MAX_OFFSETS];
+size_t offsets[CONFIG_HEAP_MAX_OFFSETS];
 size_t count=heap->free_offset_count;
 for(uint32_t pos=0; pos<count; pos++)
 	offsets[pos]=heap->free_offsets[pos];
 heap->free_offset_count=0;
-size_t heap_start=(size_t)heap+sizeof(heap_t);
+size_t heap_start=(size_t)heap+sizeof(multi_heap_t);
 for(uint32_t pos=0; pos<count; pos++)
 	{
 	if(offsets[pos]==0)
@@ -250,7 +239,7 @@ for(uint32_t pos=0; pos<count; pos++)
 bool multi_heap_check_internal(multi_heap_handle_t heap, bool print_errors)
 {
 bool success=true;
-size_t heap_start=(size_t)heap+sizeof(heap_t);
+size_t heap_start=(size_t)heap+sizeof(multi_heap_t);
 size_t heap_end=heap_start+heap->size;
 size_t pos=heap_start;
 bool prev_free=false;
@@ -300,7 +289,7 @@ void multi_heap_dump_internal(multi_heap_handle_t heap)
 if(!heap->total_blocks)
 	return;
 MULTI_HEAP_PRINTF("heap 0x%x:\n", heap);
-size_t heap_start=(size_t)heap+sizeof(heap_t);
+size_t heap_start=(size_t)heap+sizeof(multi_heap_t);
 MULTI_HEAP_PRINTF("\tstart: 0x%x\tend: 0x%x\tsize: %u\ttotal: %u\n", heap_start, heap_start+heap->size, heap->size, heap->total_size);
 MULTI_HEAP_PRINTF("\tfree bytes: %u", heap->free_bytes);
 if(heap->flags&MULTI_HEAP_FLAG_DIRTY)
@@ -322,7 +311,7 @@ if(!mem_block_get_info(heap, offset, &info))
 	return;
 if(info.flags&MEM_BLOCK_FLAG_FREE)
 	return;
-size_t heap_start=(size_t)heap+sizeof(heap_t);
+size_t heap_start=(size_t)heap+sizeof(multi_heap_t);
 if(info.pos+info.size==heap_start+heap->size)
 	{
 	heap->size-=info.size;
@@ -380,7 +369,7 @@ if(info.next.flags&MEM_BLOCK_FLAG_FREE)
 	heap->free_blocks--;
 	heap->total_blocks--;
 	}
-size_t heap_start=(size_t)heap+sizeof(heap_t);
+size_t heap_start=(size_t)heap+sizeof(multi_heap_t);
 if(free_pos+free_size==heap_start+heap->size)
 	{
 	heap->size-=free_size;
@@ -470,8 +459,8 @@ return info.size;
 multi_heap_handle_t multi_heap_register(void* head, size_t size)
 {
 size_t offset=multi_heap_align_up((size_t)head, 8);
-heap_t* heap=(heap_t*)offset;
-size_t start=offset+sizeof(heap_t);
+multi_heap_t* heap=(multi_heap_t*)offset;
+size_t start=offset+sizeof(multi_heap_t);
 size_t end=multi_heap_align_down(offset+size, 16);
 heap->lock=NULL;
 heap->total_size=end-start;

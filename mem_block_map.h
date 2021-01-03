@@ -72,7 +72,7 @@ typedef struct mem_block_map_item_group_t
 {
 uint16_t level;
 uint16_t child_count;
-mem_block_map_item_t items[CONFIG_MULTI_HEAP_GROUP_SIZE];
+mem_block_map_item_t items[CONFIG_HEAP_GROUP_SIZE];
 }mem_block_map_item_group_t;
 
 // Con-/Destructors
@@ -109,7 +109,7 @@ uint16_t child_count;
 mem_block_map_item_t* first;
 mem_block_map_item_t* last;
 size_t item_count;
-mem_block_map_group_t* children[CONFIG_MULTI_HEAP_GROUP_SIZE];
+mem_block_map_group_t* children[CONFIG_HEAP_GROUP_SIZE];
 }mem_block_map_parent_group_t;
 
 
@@ -186,7 +186,7 @@ typedef struct
 mem_block_map_item_t* current;
 mem_block_map_t* map;
 uint16_t level_count;
-mem_block_map_it_ptr_t pointers[CONFIG_MULTI_HEAP_MAP_MAX_LEVELS];
+mem_block_map_it_ptr_t pointers[CONFIG_HEAP_MAP_MAX_LEVELS];
 }mem_block_map_it_t;
 
 

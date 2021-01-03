@@ -52,9 +52,9 @@ size_t free_blocks;
 size_t total_blocks;
 uint32_t flags;
 uint32_t free_offset_count;
-size_t free_offsets[CONFIG_MULTI_HEAP_MAX_OFFSETS];
+size_t free_offsets[CONFIG_HEAP_MAX_OFFSETS];
 mem_block_map_t map_free;
-}heap_t;
+}multi_heap_t;
 
 
 //===========
@@ -73,6 +73,21 @@ inline static size_t multi_heap_align_up(size_t offset, size_t align)
 if(offset%align)
 	offset+=(align-(offset%align));
 return offset;
+}
+
+
+//=======
+// Tasks
+//=======
+
+static inline void multi_heap_internal_lock(multi_heap_handle_t heap)
+{
+MULTI_HEAP_LOCK(heap->lock);
+}
+
+static inline void multi_heap_internal_unlock(multi_heap_handle_t heap)
+{
+MULTI_HEAP_UNLOCK(heap->lock);
 }
 
 

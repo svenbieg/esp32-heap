@@ -158,7 +158,7 @@ if(!child_count)
 	return false;
 	}
 bool success=true;
-size_t heap_start=(size_t)heap+sizeof(heap_t);
+size_t heap_start=(size_t)heap+sizeof(multi_heap_t);
 size_t heap_end=heap_start+heap->size;
 size_t last_size=0;
 for(uint16_t pos=0; pos<child_count; pos++)
@@ -369,7 +369,7 @@ return mem_block_map_item_group_add_offset_internal(group, size, offset, pos);
 bool mem_block_map_item_group_add_offset_internal(mem_block_map_item_group_t* group, size_t size, size_t offset, uint16_t pos)
 {
 uint16_t child_count=mem_block_group_get_child_count((mem_block_group_t*)group);
-if(child_count==CONFIG_MULTI_HEAP_GROUP_SIZE)
+if(child_count==CONFIG_HEAP_GROUP_SIZE)
 	return false;
 for(uint16_t u=child_count; u>pos; u--)
 	group->items[u]=group->items[u-1];
@@ -689,14 +689,14 @@ while(before>=0||after<child_count)
 	if(before>=0)
 		{
 		uint16_t count=mem_block_group_get_child_count(group->children[before]);
-		if(count<CONFIG_MULTI_HEAP_GROUP_SIZE)
+		if(count<CONFIG_HEAP_GROUP_SIZE)
 			return before;
 		before--;
 		}
 	if(after<child_count)
 		{
 		uint16_t count=mem_block_group_get_child_count(group->children[after]);
-		if(count<CONFIG_MULTI_HEAP_GROUP_SIZE)
+		if(count<CONFIG_HEAP_GROUP_SIZE)
 			return after;
 		after++;
 		}
@@ -782,7 +782,7 @@ if(count==0)
 if(pos>0)
 	{
 	uint16_t before=mem_block_group_get_child_count(group->children[pos-1]);
-	if(count+before<=CONFIG_MULTI_HEAP_GROUP_SIZE)
+	if(count+before<=CONFIG_HEAP_GROUP_SIZE)
 		{
 		mem_block_map_parent_group_move_children(group, pos, pos-1, count);
 		mem_block_map_parent_group_remove_group(heap, group, pos);
@@ -793,7 +793,7 @@ uint16_t child_count=mem_block_group_get_child_count((mem_block_group_t*)group);
 if(pos+1<child_count)
 	{
 	uint16_t after=mem_block_group_get_child_count(group->children[pos+1]);
-	if(count+after<=CONFIG_MULTI_HEAP_GROUP_SIZE)
+	if(count+after<=CONFIG_HEAP_GROUP_SIZE)
 		{
 		mem_block_map_parent_group_move_children(group, pos+1, pos, after);
 		mem_block_map_parent_group_remove_group(heap, group, pos+1);
@@ -945,7 +945,7 @@ return true;
 bool mem_block_map_parent_group_split_child(multi_heap_handle_t heap, mem_block_map_parent_group_t* group, uint16_t pos)
 {
 uint16_t child_count=mem_block_group_get_child_count((mem_block_group_t*)group);
-if(child_count==CONFIG_MULTI_HEAP_GROUP_SIZE)
+if(child_count==CONFIG_HEAP_GROUP_SIZE)
 	return false;
 mem_block_map_group_t* child=NULL;
 uint16_t level=mem_block_group_get_level((mem_block_group_t*)group);
@@ -1066,7 +1066,7 @@ return offset;
 
 bool mem_block_map_add_offset(multi_heap_handle_t heap, mem_block_map_t* map, size_t size, size_t offset)
 {
-size_t heap_start=(size_t)heap+sizeof(heap_t);
+size_t heap_start=(size_t)heap+sizeof(multi_heap_t);
 size_t heap_end=heap_start+heap->size;
 if(offset<heap_start||offset>=heap_end)
 	return false;
@@ -1159,9 +1159,9 @@ mem_block_map_group_t* group=it->map->root;
 if(!group)
 	return false;
 uint16_t level_count=mem_block_group_get_level(group)+1;
-if(level_count>CONFIG_MULTI_HEAP_MAP_MAX_LEVELS)
+if(level_count>CONFIG_HEAP_MAP_MAX_LEVELS)
 	{
-	MULTI_HEAP_PRINTF("CONFIG_MULTI_HEAP_MAP_MAX_LEVELS\n");
+	MULTI_HEAP_PRINTF("CONFIG_HEAP_MAP_MAX_LEVELS\n");
 	return false;
 	}
 it->level_count=level_count;

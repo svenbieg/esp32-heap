@@ -50,7 +50,7 @@ typedef struct mem_block_list_item_group_t
 {
 uint16_t level;
 uint16_t child_count;
-size_t items[CONFIG_MULTI_HEAP_GROUP_SIZE];
+size_t items[CONFIG_HEAP_GROUP_SIZE];
 }mem_block_list_item_group_t;
 
 // Con-/Destructors
@@ -87,7 +87,7 @@ uint16_t child_count;
 size_t* first;
 size_t* last;
 size_t item_count;
-mem_block_list_group_t* children[CONFIG_MULTI_HEAP_GROUP_SIZE];
+mem_block_list_group_t* children[CONFIG_HEAP_GROUP_SIZE];
 }mem_block_list_parent_group_t;
 
 

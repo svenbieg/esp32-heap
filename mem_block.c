@@ -27,7 +27,7 @@ return multi_heap_align_up(size, 4)+2*sizeof(size_t);
 
 void* mem_block_init(multi_heap_handle_t heap, size_t offset, size_t size, size_t flags)
 {
-size_t heap_start=(size_t)heap+sizeof(heap_t);
+size_t heap_start=(size_t)heap+sizeof(multi_heap_t);
 size_t heap_end=heap_start+heap->size;
 if(offset<heap_start||offset>heap_end)
 	return NULL;
@@ -49,7 +49,7 @@ bool mem_block_get_neighbours(multi_heap_handle_t heap, size_t offset, mem_block
 memset(info, 0, sizeof(mem_block_neighbours_t));
 if(!mem_block_get_info(heap, offset, &info->cur))
 	return false;
-size_t heap_start=(size_t)heap+sizeof(heap_t);
+size_t heap_start=(size_t)heap+sizeof(multi_heap_t);
 if(offset>heap_start)
 	{
 	size_t* foot=(size_t*)offset;
@@ -72,7 +72,7 @@ return true;
 bool mem_block_get_info(multi_heap_handle_t heap, size_t offset, mem_block_info_t* info)
 {
 memset(info, 0, sizeof(mem_block_info_t));
-size_t heap_start=(size_t)heap+sizeof(heap_t);
+size_t heap_start=(size_t)heap+sizeof(multi_heap_t);
 if(offset<heap_start||offset>=heap_start+heap->size)
 	return false;
 size_t* head=(size_t*)offset;
