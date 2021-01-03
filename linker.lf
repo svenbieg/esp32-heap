@@ -1,0 +1,8 @@
+[mapping:heap]
+archive: libheap.a
+entries:
+    mem_block (noflash)
+    mem_block_group (noflash)
+    mem_block_list (noflash)
+    mem_block_map (noflash)
+    multi_heap (noflash)
