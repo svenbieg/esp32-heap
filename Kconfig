@@ -8,7 +8,7 @@ menu "Heap memory"
             Internal free operations are buffered
             This is the maximum number of internal operations
 
-            See http://www.github.com/svenbieg/esp32-heap for more details
+            See http://github.com/svenbieg/esp32-heap for more details
 
     config MULTI_HEAP_GROUP_SIZE
         int "Group size of heap map"
@@ -17,7 +17,7 @@ menu "Heap memory"
             Free space is mapped in a cluster
             This is the group size of the map
 
-            See http://www.github.com/svenbieg/esp32-heap for more details
+            See http://github.com/svenbieg/esp32-heap for more details
 
     config MULTI_HEAP_MAP_MAX_LEVELS
         int "Maximum heap map levels"
@@ -27,6 +27,6 @@ menu "Heap memory"
             Free space is mapped in a cluster
             This is the maximum level of the map
 
-            See http://www.github.com/svenbieg/esp32-heap for more details
+            See http://github.com/svenbieg/esp32-heap for more details
 
 endmenu
